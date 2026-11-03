@@ -1,0 +1,2153 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>내 업무 플래너</title>
+    <meta name="description" content="개인 업무를 등록하고 마감일과 우선순위, 완료 상태를 관리하는 한 화면 업무 플래너" />
+    <meta property="og:title" content="내 업무 플래너" />
+    <meta property="og:description" content="개인 업무를 등록하고 마감일과 우선순위, 완료 상태를 관리하는 한 화면 업무 플래너" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+    <link rel="stylesheet" as="style" crossOrigin="anonymous" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+
+    <style>
+      /* --- Base Reset & Typography --- */
+      *, *::before, *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+        --color-bg: #f8fafc;
+        --color-card: #ffffff;
+        --color-text-main: #0f172a;
+        --color-text-muted: #64748b;
+        --color-text-subtle: #94a3b8;
+        --color-border: #e2e8f0;
+        --color-border-dark: #cbd5e1;
+        --color-primary: #2563eb;
+        --color-primary-hover: #1d4ed8;
+        --color-primary-bg: #eff6ff;
+        --color-primary-border: #bfdbfe;
+        --color-rose: #e11d48;
+        --color-rose-bg: #fff1f2;
+        --color-rose-border: #fecdd3;
+        --color-amber: #d97706;
+        --color-amber-bg: #fffbeb;
+        --color-amber-border: #fef3c7;
+        --color-emerald: #059669;
+        --color-emerald-bg: #ecfdf5;
+        --color-emerald-border: #a7f3d0;
+      }
+
+      body {
+        font-family: var(--font-sans);
+        background-color: var(--color-bg);
+        color: var(--color-text-main);
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      input, button, select, textarea {
+        font-family: inherit;
+        font-size: inherit;
+      }
+
+      /* --- Layout --- */
+      .app-layout {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .header {
+        background-color: #ffffff;
+        border-bottom: 1px solid var(--color-border);
+      }
+
+      .header-inner {
+        max-width: 56rem;
+        margin: 0 auto;
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      @media (min-width: 640px) {
+        .header-inner {
+          flex-direction: row;
+          align-items: center;
+          justify-content: space-between;
+          padding: 1rem 1.5rem;
+        }
+      }
+
+      .brand-box {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .brand-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 0.75rem;
+        background-color: var(--color-primary);
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      }
+
+      .brand-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        letter-spacing: -0.025em;
+        color: var(--color-text-main);
+      }
+
+      @media (min-width: 640px) {
+        .brand-title {
+          font-size: 1.5rem;
+        }
+      }
+
+      .brand-desc {
+        font-size: 0.75rem;
+        color: var(--color-text-muted);
+      }
+
+      .sync-notice {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background-color: var(--color-bg);
+        border: 1px solid var(--color-border);
+        border-radius: 0.75rem;
+        padding: 0.5rem 0.875rem;
+        font-size: 0.75rem;
+        color: #475569;
+      }
+
+      .main-content {
+        max-width: 56rem;
+        width: 100%;
+        margin: 0 auto;
+        padding: 1.75rem 1rem;
+        flex: 1;
+      }
+
+      @media (min-width: 640px) {
+        .main-content {
+          padding: 2.5rem 1.5rem;
+        }
+      }
+
+      /* --- Stats Grid --- */
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.875rem;
+        margin-bottom: 2rem;
+      }
+
+      @media (min-width: 640px) {
+        .stats-grid {
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+      }
+
+      .stat-card {
+        background: #ffffff;
+        border: 1px solid var(--color-border);
+        border-radius: 1rem;
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.875rem;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+      }
+
+      .stat-icon-wrap {
+        width: 2.75rem;
+        height: 2.75rem;
+        border-radius: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+
+      .stat-val {
+        font-size: 1.25rem;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        color: var(--color-text-main);
+      }
+
+      .stat-lbl {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--color-text-muted);
+      }
+
+      /* --- Input Form Card --- */
+      .section-badge {
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--color-primary);
+        margin-bottom: 0.625rem;
+        padding: 0 0.25rem;
+      }
+
+      .form-card {
+        background: #ffffff;
+        border: 2px solid var(--color-primary-border);
+        border-radius: 1rem;
+        padding: 1.25rem;
+        box-shadow: 0 2px 4px 0 rgba(37, 99, 235, 0.04);
+        margin-bottom: 2.5rem;
+      }
+
+      @media (min-width: 640px) {
+        .form-card {
+          padding: 1.75rem;
+        }
+      }
+
+      .form-card-header {
+        border-bottom: 1px solid #f1f5f9;
+        padding-bottom: 1rem;
+        margin-bottom: 1.25rem;
+      }
+
+      .form-card-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: var(--color-text-main);
+      }
+
+      .form-card-subtitle {
+        font-size: 0.75rem;
+        color: var(--color-text-muted);
+        padding-left: 2.25rem;
+        margin-top: 0.25rem;
+      }
+
+      .form-group {
+        margin-bottom: 1.25rem;
+      }
+
+      .form-label-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.375rem;
+      }
+
+      .form-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #1e293b;
+      }
+
+      .form-input-text {
+        width: 100%;
+        border-radius: 0.75rem;
+        border: 1px solid var(--color-border-dark);
+        background: #ffffff;
+        padding: 0.75rem 1rem;
+        font-size: 0.9375rem;
+        color: var(--color-text-main);
+        outline: none;
+        transition: border-color 0.15s, box-shadow 0.15s;
+      }
+
+      .form-input-text:focus {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+      }
+
+      .form-input-text.error {
+        border-color: #fb7185;
+        background-color: #fff1f2;
+      }
+
+      .error-msg {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: var(--color-rose);
+        margin-top: 0.5rem;
+      }
+
+      .two-col-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+      }
+
+      @media (min-width: 768px) {
+        .two-col-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      .priority-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+        margin-top: 0.375rem;
+      }
+
+      .priority-btn {
+        height: 2.75rem;
+        border-radius: 0.75rem;
+        border: 1px solid var(--color-border);
+        background: #ffffff;
+        color: #475569;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.375rem;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+
+      .priority-btn:hover {
+        background: #f8fafc;
+        border-color: var(--color-border-dark);
+      }
+
+      .priority-btn.active-high {
+        border-color: var(--color-rose);
+        background: var(--color-rose-bg);
+        color: var(--color-rose);
+        box-shadow: 0 0 0 2px rgba(225, 29, 72, 0.2);
+      }
+
+      .priority-btn.active-normal {
+        border-color: var(--color-primary);
+        background: var(--color-primary-bg);
+        color: var(--color-primary);
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+      }
+
+      .priority-btn.active-low {
+        border-color: #64748b;
+        background: #f1f5f9;
+        color: #1e293b;
+        box-shadow: 0 0 0 2px rgba(100, 116, 139, 0.2);
+      }
+
+      .dot {
+        width: 0.625rem;
+        height: 0.625rem;
+        border-radius: 9999px;
+        flex-shrink: 0;
+      }
+
+      .dot-rose { background-color: var(--color-rose); }
+      .dot-blue { background-color: var(--color-primary); }
+      .dot-slate { background-color: #94a3b8; }
+
+      .date-input-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-top: 0.375rem;
+      }
+
+      @media (min-width: 640px) {
+        .date-input-wrap {
+          flex-direction: row;
+          align-items: center;
+        }
+      }
+
+      .date-picker {
+        width: 100%;
+        height: 2.75rem;
+        border-radius: 0.75rem;
+        border: 1px solid var(--color-border-dark);
+        padding: 0 0.875rem;
+        font-size: 0.875rem;
+        color: var(--color-text-main);
+        outline: none;
+        background: #ffffff;
+      }
+
+      .date-picker:focus {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+      }
+
+      .date-shortcuts {
+        display: flex;
+        gap: 0.375rem;
+        flex-shrink: 0;
+      }
+
+      .date-quick-btn {
+        flex: 1;
+        height: 2.75rem;
+        padding: 0 0.875rem;
+        border-radius: 0.75rem;
+        border: 1px solid var(--color-border);
+        background: #ffffff;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #334155;
+        cursor: pointer;
+        transition: all 0.15s;
+        white-space: nowrap;
+      }
+
+      @media (min-width: 640px) {
+        .date-quick-btn {
+          flex: none;
+        }
+      }
+
+      .date-quick-btn:hover {
+        background: #f8fafc;
+      }
+
+      .date-quick-btn.active {
+        border-color: var(--color-primary);
+        background: var(--color-primary-bg);
+        color: var(--color-primary);
+      }
+
+      .btn-submit {
+        height: 3rem;
+        width: 100%;
+        border-radius: 0.75rem;
+        background-color: var(--color-primary);
+        color: #ffffff;
+        font-weight: 700;
+        font-size: 0.9375rem;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        transition: background-color 0.15s;
+      }
+
+      @media (min-width: 640px) {
+        .btn-submit {
+          width: auto;
+          padding: 0 1.75rem;
+          margin-left: auto;
+        }
+      }
+
+      .btn-submit:hover {
+        background-color: var(--color-primary-hover);
+      }
+
+      /* --- Task List Section --- */
+      .section-divider {
+        border-top: 2px solid var(--color-border);
+        padding-top: 1.5rem;
+        margin-bottom: 1.25rem;
+      }
+
+      .list-header-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .list-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--color-text-main);
+      }
+
+      .count-badge {
+        background: var(--color-primary-bg);
+        color: var(--color-primary);
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 0.125rem 0.625rem;
+        border-radius: 9999px;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .filter-panel {
+        background: #ffffff;
+        border: 1px solid var(--color-border);
+        border-radius: 1rem;
+        padding: 1rem;
+        margin-bottom: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.875rem;
+      }
+
+      .tabs-row {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+        overflow-x: auto;
+        padding-bottom: 0.25rem;
+        scrollbar-width: none;
+      }
+
+      .tabs-row::-webkit-scrollbar {
+        display: none;
+      }
+
+      .filter-tab {
+        height: 2.25rem;
+        padding: 0 0.75rem;
+        border-radius: 0.5rem;
+        border: 1px solid var(--color-border);
+        background: #ffffff;
+        color: #475569;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+        cursor: pointer;
+        white-space: nowrap;
+        flex-shrink: 0;
+        transition: all 0.15s;
+      }
+
+      .filter-tab:hover {
+        background: #f8fafc;
+      }
+
+      .filter-tab.active {
+        background: var(--color-primary);
+        color: #ffffff;
+        border-color: var(--color-primary);
+      }
+
+      .filter-tab.active-rose {
+        background: var(--color-rose);
+        color: #ffffff;
+        border-color: var(--color-rose);
+      }
+
+      .tab-num {
+        border-radius: 9999px;
+        padding: 0.05rem 0.375rem;
+        font-size: 0.6875rem;
+        font-variant-numeric: tabular-nums;
+        font-weight: 700;
+        background: #f1f5f9;
+        color: #475569;
+      }
+
+      .filter-tab.active .tab-num {
+        background: rgba(255, 255, 255, 0.25);
+        color: #ffffff;
+      }
+
+      .controls-row {
+        display: flex;
+        flex-direction: column;
+        gap: 0.625rem;
+      }
+
+      @media (min-width: 640px) {
+        .controls-row {
+          flex-direction: row;
+          align-items: center;
+          justify-content: space-between;
+        }
+      }
+
+      .search-wrap {
+        position: relative;
+        flex: 1;
+      }
+
+      .search-icon {
+        position: absolute;
+        left: 0.875rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--color-text-subtle);
+        pointer-events: none;
+      }
+
+      .search-input {
+        width: 100%;
+        height: 2.5rem;
+        border-radius: 0.75rem;
+        border: 1px solid var(--color-border);
+        background: #ffffff;
+        padding: 0 0.875rem 0 2.5rem;
+        font-size: 0.8125rem;
+        color: var(--color-text-main);
+        outline: none;
+      }
+
+      .search-input:focus {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+      }
+
+      .select-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+
+      .select-input {
+        height: 2.5rem;
+        border-radius: 0.75rem;
+        border: 1px solid var(--color-border);
+        background: #ffffff;
+        padding: 0 0.75rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: #334155;
+        outline: none;
+        cursor: pointer;
+      }
+
+      /* --- Task Items --- */
+      .tasks-container {
+        display: flex;
+        flex-direction: column;
+        gap: 0.875rem;
+      }
+
+      .task-card {
+        background: #ffffff;
+        border: 1px solid var(--color-border);
+        border-radius: 0.875rem;
+        padding: 1.125rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.875rem;
+        transition: border-color 0.15s, box-shadow 0.15s;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+      }
+
+      @media (min-width: 640px) {
+        .task-card {
+          padding: 1.25rem;
+        }
+      }
+
+      .task-card:hover {
+        border-color: var(--color-border-dark);
+      }
+
+      .task-card.completed {
+        background: rgba(248, 250, 252, 0.75);
+        border-color: #e2e8f0;
+      }
+
+      .task-card.overdue {
+        border-color: var(--color-rose-border);
+        background: rgba(255, 241, 242, 0.3);
+      }
+
+      .task-card.duetoday {
+        border-color: var(--color-primary-border);
+        background: rgba(239, 246, 255, 0.3);
+      }
+
+      .task-top-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.625rem;
+      }
+
+      .badges-wrap {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .check-btn {
+        width: 1.5rem;
+        height: 1.5rem;
+        border-radius: 0.375rem;
+        border: 1px solid var(--color-border-dark);
+        background: #ffffff;
+        color: transparent;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: all 0.15s;
+      }
+
+      .check-btn:hover {
+        border-color: var(--color-primary);
+        background: var(--color-primary-bg);
+      }
+
+      .check-btn.checked {
+        background: var(--color-primary);
+        border-color: var(--color-primary);
+        color: #ffffff;
+      }
+
+      .badge-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        border-radius: 0.375rem;
+        border: 1px solid transparent;
+        padding: 0.125rem 0.625rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        flex-shrink: 0;
+      }
+
+      .badge-priority-high {
+        background: var(--color-rose-bg);
+        border-color: var(--color-rose-border);
+        color: var(--color-rose);
+      }
+
+      .badge-priority-normal {
+        background: var(--color-primary-bg);
+        border-color: var(--color-primary-border);
+        color: var(--color-primary);
+      }
+
+      .badge-priority-low {
+        background: #f1f5f9;
+        border-color: #e2e8f0;
+        color: #475569;
+      }
+
+      .badge-overdue {
+        background: #ffe4e6;
+        border-color: #fecdd3;
+        color: #be123c;
+        font-weight: 700;
+      }
+
+      .badge-duetoday {
+        background: #dbeafe;
+        border-color: #bfdbfe;
+        color: #1e40af;
+        font-weight: 700;
+      }
+
+      .badge-completed {
+        background: #f1f5f9;
+        border-color: #e2e8f0;
+        color: #64748b;
+      }
+
+      .badge-dday {
+        background: #ffffff;
+        border-color: var(--color-border);
+        color: #334155;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .task-title {
+        font-size: 1rem;
+        font-weight: 700;
+        letter-spacing: -0.015em;
+        line-height: 1.45;
+        word-break: break-word;
+        color: var(--color-text-main);
+      }
+
+      @media (min-width: 640px) {
+        .task-title {
+          font-size: 1.125rem;
+        }
+      }
+
+      .task-title.completed {
+        color: var(--color-text-subtle);
+        text-decoration: line-through;
+        text-decoration-thickness: 2px;
+        text-decoration-color: #94a3b8;
+        font-weight: 400;
+      }
+
+      .task-bottom-row {
+        display: flex;
+        flex-direction: column;
+        gap: 0.625rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid #f1f5f9;
+      }
+
+      @media (min-width: 640px) {
+        .task-bottom-row {
+          flex-direction: row;
+          align-items: center;
+          justify-content: space-between;
+          border-top: none;
+          padding-top: 0;
+        }
+      }
+
+      .due-date-text {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: #64748b;
+      }
+
+      .actions-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .btn-action {
+        height: 2.25rem;
+        padding: 0 0.75rem;
+        border-radius: 0.5rem;
+        border: 1px solid var(--color-border);
+        background: #ffffff;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #334155;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.375rem;
+        cursor: pointer;
+        transition: all 0.15s;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+      }
+
+      .btn-action:hover {
+        background: #f8fafc;
+        color: var(--color-text-main);
+      }
+
+      .btn-delete {
+        border-color: var(--color-rose-border);
+        color: var(--color-rose);
+      }
+
+      .btn-delete:hover {
+        background: var(--color-rose-bg);
+        color: #be123c;
+      }
+
+      @media (max-width: 639px) {
+        .actions-row {
+          width: 100%;
+        }
+        .btn-action {
+          flex: 1;
+          height: 2.375rem;
+        }
+        .desktop-actions {
+          display: none !important;
+        }
+      }
+
+      @media (min-width: 640px) {
+        .mobile-actions {
+          display: none !important;
+        }
+      }
+
+      /* --- Empty State --- */
+      .empty-state {
+        border: 2px dashed #bfdbfe;
+        background: rgba(239, 246, 255, 0.25);
+        border-radius: 1rem;
+        padding: 3.5rem 1.5rem;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .empty-icon {
+        width: 3.5rem;
+        height: 3.5rem;
+        border-radius: 1rem;
+        background: #ffffff;
+        border: 1px solid #bfdbfe;
+        color: var(--color-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+      }
+
+      .empty-title {
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: var(--color-text-main);
+      }
+
+      .empty-desc {
+        font-size: 0.875rem;
+        color: #64748b;
+        max-width: 28rem;
+        margin-top: 0.375rem;
+      }
+
+      .tips-box {
+        margin-top: 1.5rem;
+        max-width: 26rem;
+        width: 100%;
+        background: #ffffff;
+        border: 1px solid var(--color-border);
+        border-radius: 0.75rem;
+        padding: 1rem;
+        text-align: left;
+      }
+
+      .tips-title {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 0.5rem;
+      }
+
+      .tips-list {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 0.375rem;
+        font-size: 0.75rem;
+        color: #475569;
+      }
+
+      /* --- Modals --- */
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+        background: rgba(15, 23, 42, 0.5);
+        backdrop-filter: blur(2px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+      }
+
+      .modal-box {
+        width: 100%;
+        max-width: 32rem;
+        background: #ffffff;
+        border-radius: 1rem;
+        border: 1px solid var(--color-border);
+        padding: 1.5rem;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      }
+
+      .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid #f1f5f9;
+        padding-bottom: 0.875rem;
+      }
+
+      .modal-title {
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: var(--color-text-main);
+      }
+
+      .modal-footer {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.625rem;
+        border-top: 1px solid #f1f5f9;
+        padding-top: 1rem;
+        margin-top: 1.5rem;
+      }
+
+      /* --- Toast & Storage Alerts --- */
+      .alert-box {
+        background: var(--color-rose-bg);
+        border: 1px solid var(--color-rose-border);
+        border-radius: 0.75rem;
+        padding: 1rem;
+        color: #9f1239;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .toast {
+        position: fixed;
+        bottom: 1.25rem;
+        right: 1.25rem;
+        z-index: 50;
+        background: #0f172a;
+        color: #ffffff;
+        padding: 0.75rem 1.125rem;
+        border-radius: 0.75rem;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      }
+
+      .footer {
+        background: #ffffff;
+        border-top: 1px solid var(--color-border);
+        padding: 1.5rem 1rem;
+        text-align: center;
+        font-size: 0.75rem;
+        color: #64748b;
+        margin-top: auto;
+      }
+
+      .footer-inner {
+        max-width: 56rem;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      @media (min-width: 640px) {
+        .footer-inner {
+          flex-direction: row;
+          justify-content: space-between;
+          align-items: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script>
+      (function () {
+        'use strict';
+
+        // --- Storage Management ---
+        var STORAGE_KEY = 'my_work_planner_tasks_v1';
+
+        function loadTasks() {
+          try {
+            var raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) return { tasks: [] };
+            var parsed = JSON.parse(raw);
+            if (!Array.isArray(parsed)) return { tasks: [] };
+            return { tasks: parsed };
+          } catch (e) {
+            console.error('Failed to load tasks', e);
+            return {
+              tasks: [],
+              error: '저장된 업무 목록을 불러오는 중 오류가 발생했습니다.',
+            };
+          }
+        }
+
+        function saveTasks(tasksToSave) {
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(tasksToSave));
+            return { success: true };
+          } catch (e) {
+            console.error('Failed to save tasks', e);
+            return {
+              success: false,
+              errorMessage: '저장되지 않았습니다. 브라우저 저장 공간 또는 권한을 확인해 주세요.',
+            };
+          }
+        }
+
+        // --- Date Utilities (Local User Timezone) ---
+        var WEEKDAYS_KO = ['일', '월', '화', '수', '목', '금', '토'];
+
+        function getTodayLocalDateString() {
+          var now = new Date();
+          var y = now.getFullYear();
+          var m = String(now.getMonth() + 1).padStart(2, '0');
+          var d = String(now.getDate()).padStart(2, '0');
+          return y + '-' + m + '-' + d;
+        }
+
+        function getTomorrowLocalDateString() {
+          var now = new Date();
+          now.setDate(now.getDate() + 1);
+          var y = now.getFullYear();
+          var m = String(now.getMonth() + 1).padStart(2, '0');
+          var d = String(now.getDate()).padStart(2, '0');
+          return y + '-' + m + '-' + d;
+        }
+
+        function formatKoreanDate(dateStr) {
+          if (!dateStr) return '마감일 없음';
+          var parts = dateStr.split('-');
+          if (parts.length !== 3) return dateStr;
+          var y = parseInt(parts[0], 10);
+          var m = parseInt(parts[1], 10);
+          var d = parseInt(parts[2], 10);
+          var date = new Date(y, m - 1, d);
+          var dayName = WEEKDAYS_KO[date.getDay()];
+          return y + '. ' + String(m).padStart(2, '0') + '. ' + String(d).padStart(2, '0') + ' (' + dayName + ')';
+        }
+
+        function calculateDueDateStatus(dueDate, completed) {
+          if (!dueDate) {
+            return {
+              isOverdue: false,
+              isDueToday: false,
+              isUpcoming: false,
+              badgeLabel: '마감일 없음',
+              diffDays: null,
+            };
+          }
+
+          // Completed tasks are excluded from overdue alerts
+          if (completed) {
+            return {
+              isOverdue: false,
+              isDueToday: false,
+              isUpcoming: false,
+              badgeLabel: '완료됨',
+              diffDays: null,
+            };
+          }
+
+          var todayStr = getTodayLocalDateString();
+
+          // Today is NEVER marked as overdue, it's '오늘 마감'
+          if (dueDate === todayStr) {
+            return {
+              isOverdue: false,
+              isDueToday: true,
+              isUpcoming: false,
+              badgeLabel: '오늘 마감',
+              diffDays: 0,
+            };
+          }
+
+          var tParts = todayStr.split('-').map(Number);
+          var dParts = dueDate.split('-').map(Number);
+          var todayMidnight = new Date(tParts[0], tParts[1] - 1, tParts[2]).getTime();
+          var dueMidnight = new Date(dParts[0], dParts[1] - 1, dParts[2]).getTime();
+          var diffDays = Math.round((dueMidnight - todayMidnight) / (1000 * 60 * 60 * 24));
+
+          if (diffDays < 0) {
+            return {
+              isOverdue: true,
+              isDueToday: false,
+              isUpcoming: false,
+              badgeLabel: '기한 지남',
+              diffDays: diffDays,
+            };
+          }
+
+          return {
+            isOverdue: false,
+            isDueToday: false,
+            isUpcoming: true,
+            badgeLabel: 'D-' + diffDays,
+            diffDays: diffDays,
+          };
+        }
+
+        function generateUniqueId() {
+          if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+            return crypto.randomUUID();
+          }
+          return 'task_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+        }
+
+        function escapeHtml(str) {
+          if (!str) return '';
+          return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+        }
+
+        // --- SVG Icons ---
+        var svgs = {
+          checkCircle: '<svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>',
+          checkIcon: '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>',
+          hardDrive: '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7v10c0 2 1 3 3 3h10c2 0 3-1 3-3V7c0-2-1-3-3-3H7c-2 0-3 1-3 3zm0 5h16M8 16h.01M12 16h.01"></path></svg>',
+          listTodo: '<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>',
+          clock: '<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>',
+          clockSm: '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>',
+          alertCircle: '<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>',
+          alertCircleSm: '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>',
+          calendarSm: '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>',
+          edit: '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>',
+          trash: '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>',
+          plus: '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>',
+          penLine: '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>',
+          search: '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>',
+          checkSquare: '<svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>',
+          arrowUp: '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>',
+          close: '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>',
+        };
+
+        // --- App State ---
+        var tasks = loadTasks().tasks;
+        var storageError = null;
+        var toastMessage = null;
+        var toastTimeout = null;
+
+        var newTitle = '';
+        var newPriority = 'normal'; // default: normal (보통)
+        var newDueDate = '';
+        var formError = null;
+
+        var filters = {
+          status: 'all',
+          priority: 'all',
+          search: '',
+          sortBy: 'createdAt_desc',
+        };
+
+        var editingTask = null;
+        var editError = null;
+        var deletingTask = null;
+
+        function showToast(msg) {
+          toastMessage = msg;
+          renderToast();
+          if (toastTimeout) clearTimeout(toastTimeout);
+          toastTimeout = setTimeout(function () {
+            toastMessage = null;
+            renderToast();
+          }, 2500);
+        }
+
+        // --- Core Operations ---
+        function addTask() {
+          var trimmed = newTitle.trim();
+          if (!trimmed) {
+            if (newTitle.length > 0) {
+              formError = '공백만으로는 업무를 등록할 수 없습니다. 유효한 업무명을 1자 이상 입력해 주세요.';
+            } else {
+              formError = '업무명을 입력해 주세요. (공백 제외 1자 이상)';
+            }
+            renderApp();
+            var input = document.getElementById('task-title-input');
+            if (input) input.focus();
+            return;
+          }
+
+          formError = null;
+          var newTask = {
+            id: generateUniqueId(),
+            title: trimmed,
+            priority: newPriority,
+            dueDate: newDueDate ? newDueDate : null,
+            completed: false,
+            createdAt: new Date().toISOString(),
+          };
+
+          var nextTasks = [newTask].concat(tasks);
+          var saveRes = saveTasks(nextTasks);
+          if (!saveRes.success) {
+            storageError = saveRes.errorMessage || '저장되지 않았습니다.';
+            renderApp();
+            return;
+          }
+
+          tasks = nextTasks;
+          newTitle = '';
+          newPriority = 'normal';
+          newDueDate = '';
+          storageError = null;
+          showToast('새 업무가 등록되었습니다.');
+          renderApp();
+        }
+
+        function toggleComplete(id) {
+          var nextTasks = tasks.map(function (t) {
+            if (t.id === id) {
+              return Object.assign({}, t, {
+                completed: !t.completed,
+                updatedAt: new Date().toISOString(),
+              });
+            }
+            return t;
+          });
+
+          var saveRes = saveTasks(nextTasks);
+          if (!saveRes.success) {
+            storageError = saveRes.errorMessage || '저장되지 않았습니다.';
+            renderApp();
+            return;
+          }
+
+          tasks = nextTasks;
+          storageError = null;
+          renderApp();
+        }
+
+        function saveEdit() {
+          if (!editingTask) return;
+          var titleEl = document.getElementById('edit-title-input');
+          var titleVal = titleEl ? titleEl.value.trim() : '';
+
+          if (!titleVal) {
+            editError = '업무명을 1자 이상 입력해 주세요 (공백 불가).';
+            renderModals();
+            return;
+          }
+
+          var updated = Object.assign({}, editingTask, {
+            title: titleVal,
+            updatedAt: new Date().toISOString(),
+          });
+
+          var nextTasks = tasks.map(function (t) {
+            return t.id === updated.id ? updated : t;
+          });
+
+          var saveRes = saveTasks(nextTasks);
+          if (!saveRes.success) {
+            storageError = saveRes.errorMessage || '저장되지 않았습니다.';
+            renderApp();
+            return;
+          }
+
+          tasks = nextTasks;
+          editingTask = null;
+          editError = null;
+          storageError = null;
+          showToast('업무 내용이 수정되었습니다.');
+          renderApp();
+        }
+
+        function confirmDelete(id) {
+          var nextTasks = tasks.filter(function (t) {
+            return t.id !== id;
+          });
+          var saveRes = saveTasks(nextTasks);
+          if (!saveRes.success) {
+            storageError = saveRes.errorMessage || '저장되지 않았습니다.';
+            renderApp();
+            return;
+          }
+
+          tasks = nextTasks;
+          deletingTask = null;
+          storageError = null;
+          showToast('선택한 업무가 삭제되었습니다.');
+          renderApp();
+        }
+
+        // --- Filtering & Sorting ---
+        function computeCounts() {
+          var todayStr = getTodayLocalDateString();
+          var pending = 0;
+          var dueToday = 0;
+          var overdue = 0;
+          var completed = 0;
+
+          for (var i = 0; i < tasks.length; i++) {
+            var t = tasks[i];
+            if (t.completed) {
+              completed++;
+            } else {
+              pending++;
+              if (t.dueDate === todayStr) {
+                dueToday++;
+              } else if (t.dueDate && t.dueDate < todayStr) {
+                overdue++;
+              }
+            }
+          }
+
+          return {
+            all: tasks.length,
+            pending: pending,
+            dueToday: dueToday,
+            overdue: overdue,
+            completed: completed,
+          };
+        }
+
+        function getFilteredTasks() {
+          var todayStr = getTodayLocalDateString();
+          var result = tasks.slice();
+
+          // Status filter
+          if (filters.status === 'pending') {
+            result = result.filter(function (t) { return !t.completed; });
+          } else if (filters.status === 'dueToday') {
+            result = result.filter(function (t) { return !t.completed && t.dueDate === todayStr; });
+          } else if (filters.status === 'overdue') {
+            result = result.filter(function (t) { return !t.completed && Boolean(t.dueDate && t.dueDate < todayStr); });
+          } else if (filters.status === 'completed') {
+            result = result.filter(function (t) { return t.completed; });
+          }
+
+          // Priority filter
+          if (filters.priority !== 'all') {
+            result = result.filter(function (t) { return t.priority === filters.priority; });
+          }
+
+          // Search
+          if (filters.search.trim()) {
+            var q = filters.search.trim().toLowerCase();
+            result = result.filter(function (t) { return t.title.toLowerCase().indexOf(q) !== -1; });
+          }
+
+          // Sorting
+          var priorityWeight = { high: 3, normal: 2, low: 1 };
+          result.sort(function (a, b) {
+            if (filters.sortBy === 'createdAt_desc') {
+              return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+            }
+            if (filters.sortBy === 'priority_desc') {
+              return priorityWeight[b.priority] - priorityWeight[a.priority];
+            }
+            if (filters.sortBy === 'title_asc') {
+              return a.title.localeCompare(b.title, 'ko');
+            }
+            if (filters.sortBy === 'dueDate_asc') {
+              if (!a.dueDate && !b.dueDate) return 0;
+              if (!a.dueDate) return 1;
+              if (!b.dueDate) return -1;
+              return a.dueDate.localeCompare(b.dueDate);
+            }
+            return 0;
+          });
+
+          return result;
+        }
+
+        // --- Render UI ---
+        function renderApp() {
+          var root = document.getElementById('root');
+          if (!root) return;
+
+          var counts = computeCounts();
+          var displayedTasks = getFilteredTasks();
+          var hasActiveFilters =
+            filters.status !== 'all' || filters.priority !== 'all' || filters.search.trim() !== '';
+
+          var todayStr = getTodayLocalDateString();
+          var tomorrowStr = getTomorrowLocalDateString();
+
+          var html = '';
+
+          html += '<div class="app-layout">';
+
+          // Header
+          html += '<header class="header">';
+          html += '  <div class="header-inner">';
+          html += '    <div class="brand-box">';
+          html += '      <div class="brand-icon">' + svgs.checkCircle + '</div>';
+          html += '      <div>';
+          html += '        <h1 class="brand-title">내 업무 플래너</h1>';
+          html += '        <p class="brand-desc">개인 업무 및 마감 일정 관리</p>';
+          html += '      </div>';
+          html += '    </div>';
+          html += '    <div class="sync-notice">';
+          html += '      ' + svgs.hardDrive;
+          html += '      <span>이 브라우저에 저장되며 다른 기기와 자동 동기화되지 않습니다</span>';
+          html += '    </div>';
+          html += '  </div>';
+          html += '</header>';
+
+          // Main Viewport
+          html += '<main class="main-content">';
+
+          // Storage Failure Alert
+          if (storageError) {
+            html += '<div class="alert-box" role="alert">';
+            html += '  <div style="display:flex; gap:0.75rem; align-items:flex-start;">';
+            html += '    ' + svgs.alertCircle;
+            html += '    <div>';
+            html += '      <p style="font-size:0.875rem; font-weight:700;">저장되지 않았습니다</p>';
+            html += '      <p style="font-size:0.75rem; margin-top:0.125rem;">' + escapeHtml(storageError) + '</p>';
+            html += '    </div>';
+            html += '  </div>';
+            html += '  <button type="button" id="dismiss-storage-error" style="background:none; border:none; cursor:pointer; color:inherit;">' + svgs.close + '</button>';
+            html += '</div>';
+          }
+
+          // Stats Grid
+          html += '<section aria-label="업무 요약 통계" class="stats-grid">';
+          html += '  <div class="stat-card">';
+          html += '    <div class="stat-icon-wrap" style="background-color: var(--color-primary-bg); color: var(--color-primary);">' + svgs.listTodo + '</div>';
+          html += '    <div><p class="stat-lbl">전체 업무</p><p class="stat-val">' + counts.all + '건</p></div>';
+          html += '  </div>';
+          html += '  <div class="stat-card">';
+          html += '    <div class="stat-icon-wrap" style="background-color: var(--color-amber-bg); color: var(--color-amber);">' + svgs.clock + '</div>';
+          html += '    <div><p class="stat-lbl">미완료</p><p class="stat-val">' + counts.pending + '건</p></div>';
+          html += '  </div>';
+          html += '  <div class="stat-card">';
+          html += '    <div class="stat-icon-wrap" style="background-color: ' + (counts.overdue > 0 ? 'var(--color-rose-bg)' : '#f1f5f9') + '; color: ' + (counts.overdue > 0 ? 'var(--color-rose)' : '#94a3b8') + ';">' + svgs.alertCircle + '</div>';
+          html += '    <div><p class="stat-lbl">기한 지남</p><p class="stat-val" style="color:' + (counts.overdue > 0 ? 'var(--color-rose)' : 'inherit') + ';">' + counts.overdue + '건</p></div>';
+          html += '  </div>';
+          html += '  <div class="stat-card">';
+          html += '    <div class="stat-icon-wrap" style="background-color: var(--color-emerald-bg); color: var(--color-emerald);">' + svgs.checkCircle + '</div>';
+          html += '    <div><p class="stat-lbl">완료됨</p><p class="stat-val">' + counts.completed + '건</p></div>';
+          html += '  </div>';
+          html += '</section>';
+
+          // Section 1: Input Area (Clearly separated)
+          html += '<section aria-label="업무 등록 영역" style="margin-bottom: 2.5rem;">';
+          html += '  <div class="section-badge">작성 영역</div>';
+          html += '  <div class="form-card">';
+          html += '    <div class="form-card-header">';
+          html += '      <div class="form-card-title">';
+          html += '        <div style="width:1.75rem; height:1.75rem; border-radius:0.5rem; background-color:var(--color-primary-bg); color:var(--color-primary); display:flex; align-items:center; justify-content:center;">' + svgs.penLine + '</div>';
+          html += '        <h2>새 업무 등록</h2>';
+          html += '      </div>';
+          html += '      <p class="form-card-subtitle">할 일과 마감일, 우선순위를 지정하여 체계적으로 관리하세요.</p>';
+          html += '    </div>';
+
+          html += '    <form id="task-add-form">';
+          // Title input
+          html += '      <div class="form-group">';
+          html += '        <div class="form-label-row">';
+          html += '          <label for="task-title-input" class="form-label">업무명 <span style="color:var(--color-rose);">*</span></label>';
+          html += '          <span style="font-size:0.6875rem; color:#94a3b8;">공백 제외 필수 입력</span>';
+          html += '        </div>';
+          html += '        <input id="task-title-input" type="text" class="form-input-text ' + (formError ? 'error' : '') + '" value="' + escapeHtml(newTitle) + '" placeholder="예: 2분기 사업 결과 보고서 초안 작성" />';
+          if (formError) {
+            html += '      <div class="error-msg">' + svgs.alertCircleSm + '<span>' + escapeHtml(formError) + '</span></div>';
+          }
+          html += '      </div>';
+
+          // Two-column row: Priority & Due Date
+          html += '      <div class="two-col-grid form-group">';
+          // Priority
+          html += '        <div>';
+          html += '          <label class="form-label">우선순위 <span style="font-weight:normal; color:#64748b;">(기본값: 보통)</span></label>';
+          html += '          <div class="priority-grid">';
+          html += '            <button type="button" data-priority="high" class="priority-btn ' + (newPriority === 'high' ? 'active-high' : '') + '">';
+          html += '              <span class="dot dot-rose"></span><span>높음</span>';
+          html += '            </button>';
+          html += '            <button type="button" data-priority="normal" class="priority-btn ' + (newPriority === 'normal' ? 'active-normal' : '') + '">';
+          html += '              <span class="dot dot-blue"></span><span>보통</span>';
+          html += '            </button>';
+          html += '            <button type="button" data-priority="low" class="priority-btn ' + (newPriority === 'low' ? 'active-low' : '') + '">';
+          html += '              <span class="dot dot-slate"></span><span>낮음</span>';
+          html += '            </button>';
+          html += '          </div>';
+          html += '        </div>';
+
+          // Due Date
+          html += '        <div>';
+          html += '          <div class="form-label-row">';
+          html += '            <label for="task-due-date-input" class="form-label">마감일 <span style="font-weight:normal; color:#64748b;">(선택사항)</span></label>';
+          if (newDueDate) {
+            html += '          <button type="button" id="clear-due-date-btn" style="background:none; border:none; color:var(--color-primary); font-size:0.75rem; text-decoration:underline; cursor:pointer;">마감일 지우기</button>';
+          }
+          html += '          </div>';
+          html += '          <div class="date-input-wrap">';
+          html += '            <input id="task-due-date-input" type="date" class="date-picker" value="' + newDueDate + '" />';
+          html += '            <div class="date-shortcuts">';
+          html += '              <button type="button" id="btn-date-today" class="date-quick-btn ' + (newDueDate === todayStr ? 'active' : '') + '">오늘</button>';
+          html += '              <button type="button" id="btn-date-tomorrow" class="date-quick-btn ' + (newDueDate === tomorrowStr ? 'active' : '') + '">내일</button>';
+          html += '            </div>';
+          html += '          </div>';
+          html += '          <p style="font-size:0.6875rem; color:#64748b; margin-top:0.375rem;">' + (newDueDate ? '선택한 마감일이 적용됩니다.' : '미선택 시 ‘마감일 없음’으로 자동 표기됩니다.') + '</p>';
+          html += '        </div>';
+          html += '      </div>';
+
+          // Submit Button
+          html += '      <div style="padding-top:0.5rem; display:flex;">';
+          html += '        <button type="submit" class="btn-submit">' + svgs.plus + '<span>업무 등록</span></button>';
+          html += '      </div>';
+          html += '    </form>';
+          html += '  </div>';
+          html += '</section>';
+
+          // Section 2: Task List (Distinct visual boundary)
+          html += '<section aria-labelledby="task-list-heading">';
+          html += '  <div class="section-divider">';
+          html += '    <div class="list-header-row">';
+          html += '      <h2 id="task-list-heading" class="list-title">업무 목록</h2>';
+          html += '      <span class="count-badge">' + displayedTasks.length + '건</span>';
+          html += '    </div>';
+          html += '    <p style="font-size:0.75rem; color:#64748b; margin-top:0.125rem;">체크박스로 완료 상태를 변경하고 마감 일정을 확인하세요.</p>';
+          html += '  </div>';
+
+          // Filter Panel
+          if (tasks.length > 0 || hasActiveFilters) {
+            html += '  <div class="filter-panel">';
+            html += '    <div class="tabs-row">';
+            html += '      <button type="button" data-filter-status="all" class="filter-tab ' + (filters.status === 'all' ? 'active' : '') + '"><span>전체</span><span class="tab-num">' + counts.all + '</span></button>';
+            html += '      <button type="button" data-filter-status="pending" class="filter-tab ' + (filters.status === 'pending' ? 'active' : '') + '"><span>미완료</span><span class="tab-num">' + counts.pending + '</span></button>';
+            html += '      <button type="button" data-filter-status="dueToday" class="filter-tab ' + (filters.status === 'dueToday' ? 'active' : '') + '"><span style="display:flex; align-items:center; gap:0.25rem;"><span class="dot dot-blue" style="width:0.375rem; height:0.375rem;"></span><span>오늘 마감</span></span><span class="tab-num">' + counts.dueToday + '</span></button>';
+            html += '      <button type="button" data-filter-status="overdue" class="filter-tab ' + (filters.status === 'overdue' ? 'active-rose' : '') + '"><span style="display:flex; align-items:center; gap:0.25rem;"><span class="dot dot-rose" style="width:0.375rem; height:0.375rem;"></span><span>기한 지남</span></span><span class="tab-num">' + counts.overdue + '</span></button>';
+            html += '      <button type="button" data-filter-status="completed" class="filter-tab ' + (filters.status === 'completed' ? 'active' : '') + '"><span>완료</span><span class="tab-num">' + counts.completed + '</span></button>';
+            html += '    </div>';
+
+            html += '    <div class="controls-row">';
+            html += '      <div class="search-wrap">';
+            html += '        <span class="search-icon">' + svgs.search + '</span>';
+            html += '        <input id="search-input" type="text" class="search-input" value="' + escapeHtml(filters.search) + '" placeholder="업무명으로 검색..." />';
+            html += '      </div>';
+            html += '      <div class="select-group">';
+            html += '        <div style="display:flex; align-items:center; gap:0.375rem;">';
+            html += '          <label for="priority-filter-select" style="font-size:0.75rem; font-weight:600; color:#475569; white-space:nowrap;">우선순위:</label>';
+            html += '          <select id="priority-filter-select" class="select-input">';
+            html += '            <option value="all" ' + (filters.priority === 'all' ? 'selected' : '') + '>모든 우선순위</option>';
+            html += '            <option value="high" ' + (filters.priority === 'high' ? 'selected' : '') + '>높음</option>';
+            html += '            <option value="normal" ' + (filters.priority === 'normal' ? 'selected' : '') + '>보통</option>';
+            html += '            <option value="low" ' + (filters.priority === 'low' ? 'selected' : '') + '>낮음</option>';
+            html += '          </select>';
+            html += '        </div>';
+            html += '        <div style="display:flex; align-items:center; gap:0.375rem;">';
+            html += '          <label for="sort-select" style="font-size:0.75rem; font-weight:600; color:#475569; white-space:nowrap;">정렬:</label>';
+            html += '          <select id="sort-select" class="select-input">';
+            html += '            <option value="createdAt_desc" ' + (filters.sortBy === 'createdAt_desc' ? 'selected' : '') + '>최신 등록순</option>';
+            html += '            <option value="dueDate_asc" ' + (filters.sortBy === 'dueDate_asc' ? 'selected' : '') + '>마감일 임박순</option>';
+            html += '            <option value="priority_desc" ' + (filters.sortBy === 'priority_desc' ? 'selected' : '') + '>우선순위 높은순</option>';
+            html += '            <option value="title_asc" ' + (filters.sortBy === 'title_asc' ? 'selected' : '') + '>가나다순</option>';
+            html += '          </select>';
+            html += '        </div>';
+            html += '      </div>';
+            html += '    </div>';
+            html += '  </div>';
+          }
+
+          // Task Items or Empty
+          if (displayedTasks.length === 0) {
+            html += renderEmptyStateHtml(hasActiveFilters && tasks.length > 0);
+          } else {
+            html += '<div class="tasks-container">';
+            for (var j = 0; j < displayedTasks.length; j++) {
+              html += renderTaskCardHtml(displayedTasks[j]);
+            }
+            html += '</div>';
+          }
+
+          html += '</section>';
+          html += '</main>';
+
+          // Footer
+          html += '<footer class="footer">';
+          html += '  <div class="footer-inner">';
+          html += '    <p style="font-weight:600; color:#334155;">© 내 업무 플래너</p>';
+          html += '    <p>이 브라우저에 저장되며 다른 기기와 자동 동기화되지 않습니다</p>';
+          html += '  </div>';
+          html += '</footer>';
+
+          // Modal & Toast Placeholders
+          html += '<div id="modal-container"></div>';
+          html += '<div id="toast-container"></div>';
+
+          html += '</div>';
+
+          root.innerHTML = html;
+
+          renderModals();
+          renderToast();
+          attachEventListeners();
+        }
+
+        function renderTaskCardHtml(task) {
+          var dateStatus = calculateDueDateStatus(task.dueDate, task.completed);
+
+          var priorityLabel = '보통';
+          var priorityBadgeClass = 'badge-priority-normal';
+          var priorityDotClass = 'dot-blue';
+          if (task.priority === 'high') {
+            priorityLabel = '높음';
+            priorityBadgeClass = 'badge-priority-high';
+            priorityDotClass = 'dot-rose';
+          } else if (task.priority === 'low') {
+            priorityLabel = '낮음';
+            priorityBadgeClass = 'badge-priority-low';
+            priorityDotClass = 'dot-slate';
+          }
+
+          var cardClass = 'task-card';
+          if (task.completed) cardClass += ' completed';
+          else if (dateStatus.isOverdue) cardClass += ' overdue';
+          else if (dateStatus.isDueToday) cardClass += ' duetoday';
+
+          var h = '';
+          h += '<article class="' + cardClass + '">';
+          // Top row
+          h += '  <div class="task-top-row">';
+          h += '    <div class="badges-wrap">';
+          // Complete check toggle
+          h += '      <button type="button" data-action="toggle-complete" data-id="' + task.id + '" class="check-btn ' + (task.completed ? 'checked' : '') + '" aria-label="' + escapeHtml(task.title) + ' 완료 토글">';
+          h += '        ' + svgs.checkIcon;
+          h += '      </button>';
+
+          // Priority badge with both color dot and text
+          h += '      <span class="badge-tag ' + priorityBadgeClass + '">';
+          h += '        <span class="dot ' + priorityDotClass + '"></span>';
+          h += '        <span>우선순위: ' + priorityLabel + '</span>';
+          h += '      </span>';
+
+          // Overdue badge
+          if (dateStatus.isOverdue) {
+            h += '    <span class="badge-tag badge-overdue">' + svgs.alertCircleSm + '<span>기한 지남</span></span>';
+          }
+          // Due Today badge
+          if (dateStatus.isDueToday) {
+            h += '    <span class="badge-tag badge-duetoday">' + svgs.clockSm + '<span>오늘 마감</span></span>';
+          }
+          // Completed badge
+          if (task.completed) {
+            h += '    <span class="badge-tag badge-completed">완료됨</span>';
+          }
+          // D-Day badge
+          if (dateStatus.isUpcoming && dateStatus.diffDays !== null) {
+            h += '    <span class="badge-tag badge-dday">D-' + dateStatus.diffDays + '</span>';
+          }
+          h += '    </div>';
+
+          // Desktop Action Buttons
+          h += '    <div class="actions-row desktop-actions">';
+          h += '      <button type="button" data-action="open-edit" data-id="' + task.id + '" class="btn-action">' + svgs.edit + '<span>수정</span></button>';
+          h += '      <button type="button" data-action="open-delete" data-id="' + task.id + '" class="btn-action btn-delete">' + svgs.trash + '<span>삭제</span></button>';
+          h += '    </div>';
+          h += '  </div>';
+
+          // Title
+          h += '  <div style="flex:1;">';
+          h += '    <h3 class="task-title ' + (task.completed ? 'completed' : '') + '">' + escapeHtml(task.title) + '</h3>';
+          h += '  </div>';
+
+          // Bottom row: Due Date & Mobile Action Buttons
+          h += '  <div class="task-bottom-row">';
+          h += '    <div class="due-date-text">';
+          h += '      ' + svgs.calendarSm;
+          h += '      <span style="color:#64748b;">마감일:</span>';
+          var dateColor = '#64748b';
+          if (task.dueDate) {
+            dateColor = dateStatus.isOverdue ? 'var(--color-rose)' : '#1e293b';
+          }
+          h += '      <span style="font-weight:600; color:' + dateColor + ';">' + formatKoreanDate(task.dueDate) + '</span>';
+          h += '    </div>';
+
+          // Mobile Actions (Stacked row, never squished)
+          h += '    <div class="actions-row mobile-actions">';
+          h += '      <button type="button" data-action="open-edit" data-id="' + task.id + '" class="btn-action">' + svgs.edit + '<span>수정</span></button>';
+          h += '      <button type="button" data-action="open-delete" data-id="' + task.id + '" class="btn-action btn-delete">' + svgs.trash + '<span>삭제</span></button>';
+          h += '    </div>';
+          h += '  </div>';
+
+          h += '</article>';
+          return h;
+        }
+
+        function renderEmptyStateHtml(hasFilters) {
+          if (hasFilters) {
+            var hf = '';
+            hf += '<div class="empty-state" style="border-style:dashed; border-color:#cbd5e1; background:#ffffff;">';
+            hf += '  <div class="empty-icon" style="background:#f1f5f9; color:#94a3b8; border:none;">' + svgs.checkSquare + '</div>';
+            hf += '  <h3 class="empty-title">조건에 일치하는 업무가 없습니다</h3>';
+            hf += '  <p class="empty-desc">선택한 필터나 검색어에 맞는 업무 항목이 없습니다. 다른 조건으로 검색해 보세요.</p>';
+            hf += '  <button type="button" id="btn-reset-filters" class="btn-action" style="margin-top:1rem; padding:0 1rem; height:2.5rem;">필터 초기화</button>';
+            hf += '</div>';
+            return hf;
+          }
+
+          var he = '';
+          he += '<div class="empty-state">';
+          he += '  <div class="empty-icon">' + svgs.checkSquare + '</div>';
+          he += '  <h3 class="empty-title">등록된 업무가 없습니다</h3>';
+          he += '  <p class="empty-desc">오늘 해야 할 일이나 중요한 마감 업무를 상단 입력창에 등록해 보세요.</p>';
+          he += '  <div class="tips-box">';
+          he += '    <p class="tips-title">📌 시작하기 팁</p>';
+          he += '    <ul class="tips-list">';
+          he += '      <li><strong style="color:var(--color-primary);">1.</strong> 업무명을 작성하고 마감일(선택사항)과 우선순위를 고르세요.</li>';
+          he += '      <li><strong style="color:var(--color-primary);">2.</strong> 오늘 마감 업무는 <strong style="color:var(--color-primary);">‘오늘 마감’</strong>, 지난 날짜의 미완료 업무는 <strong style="color:var(--color-rose);">‘기한 지남’</strong>으로 표시됩니다.</li>';
+          he += '      <li><strong style="color:var(--color-primary);">3.</strong> 모든 내용은 브라우저에 안전하게 즉시 저장됩니다.</li>';
+          he += '    </ul>';
+          he += '  </div>';
+          he += '  <div style="margin-top:1.25rem; display:flex; align-items:center; gap:0.375rem; font-size:0.75rem; font-weight:600; color:var(--color-primary);">';
+          he += '    ' + svgs.arrowUp + '<span>위 입력창에 첫 업무를 등록해 보세요</span>';
+          he += '  </div>';
+          he += '</div>';
+          return he;
+        }
+
+        function renderModals() {
+          var container = document.getElementById('modal-container');
+          if (!container) return;
+
+          if (editingTask) {
+            var todayStr = getTodayLocalDateString();
+            var tomorrowStr = getTomorrowLocalDateString();
+            var m = '';
+            m += '<div class="modal-backdrop" role="dialog" aria-modal="true">';
+            m += '  <div class="modal-box">';
+            m += '    <div class="modal-header">';
+            m += '      <h2 class="modal-title">업무 수정</h2>';
+            m += '      <button type="button" id="close-edit-modal" style="background:none; border:none; cursor:pointer; color:#94a3b8;">' + svgs.close + '</button>';
+            m += '    </div>';
+            m += '    <form id="edit-task-form" style="margin-top:1.25rem; display:flex; flex-direction:column; gap:1.25rem;">';
+            m += '      <div>';
+            m += '        <label for="edit-title-input" class="form-label" style="display:block; margin-bottom:0.375rem;">업무명 <span style="color:var(--color-rose);">*</span></label>';
+            m += '        <input id="edit-title-input" type="text" class="form-input-text" value="' + escapeHtml(editingTask.title) + '" autofocus />';
+            if (editError) {
+              m += '    <div class="error-msg">' + svgs.alertCircleSm + '<span>' + escapeHtml(editError) + '</span></div>';
+            }
+            m += '      </div>';
+
+            m += '      <div>';
+            m += '        <label class="form-label" style="display:block; margin-bottom:0.375rem;">우선순위</label>';
+            m += '        <div class="priority-grid">';
+            m += '          <button type="button" data-edit-priority="high" class="priority-btn ' + (editingTask.priority === 'high' ? 'active-high' : '') + '"><span class="dot dot-rose"></span><span>높음</span></button>';
+            m += '          <button type="button" data-edit-priority="normal" class="priority-btn ' + (editingTask.priority === 'normal' ? 'active-normal' : '') + '"><span class="dot dot-blue"></span><span>보통</span></button>';
+            m += '          <button type="button" data-edit-priority="low" class="priority-btn ' + (editingTask.priority === 'low' ? 'active-low' : '') + '"><span class="dot dot-slate"></span><span>낮음</span></button>';
+            m += '        </div>';
+            m += '      </div>';
+
+            m += '      <div>';
+            m += '        <div class="form-label-row">';
+            m += '          <label for="edit-due-date-input" class="form-label">마감일 <span style="font-weight:normal; color:#64748b;">(선택사항)</span></label>';
+            if (editingTask.dueDate) {
+              m += '        <button type="button" id="edit-clear-due-date" style="background:none; border:none; color:var(--color-primary); font-size:0.75rem; text-decoration:underline; cursor:pointer;">마감일 지우기</button>';
+            }
+            m += '        </div>';
+            m += '        <div class="date-input-wrap">';
+            m += '          <input id="edit-due-date-input" type="date" class="date-picker" value="' + (editingTask.dueDate || '') + '" />';
+            m += '          <div class="date-shortcuts">';
+            m += '            <button type="button" id="edit-date-today" class="date-quick-btn ' + (editingTask.dueDate === todayStr ? 'active' : '') + '">오늘</button>';
+            m += '            <button type="button" id="edit-date-tomorrow" class="date-quick-btn ' + (editingTask.dueDate === tomorrowStr ? 'active' : '') + '">내일</button>';
+            m += '          </div>';
+            m += '        </div>';
+            m += '      </div>';
+
+            m += '      <div class="modal-footer">';
+            m += '        <button type="button" id="cancel-edit-btn" class="btn-action" style="padding:0 1.25rem; height:2.5rem;">취소</button>';
+            m += '        <button type="submit" class="btn-submit" style="width:auto; height:2.5rem; padding:0 1.25rem;">변경사항 저장</button>';
+            m += '      </div>';
+            m += '    </form>';
+            m += '  </div>';
+            m += '</div>';
+            container.innerHTML = m;
+            return;
+          }
+
+          if (deletingTask) {
+            var d = '';
+            d += '<div class="modal-backdrop" role="dialog" aria-modal="true">';
+            d += '  <div class="modal-box" style="max-width:28rem;">';
+            d += '    <div style="display:flex; justify-content:space-between; align-items:flex-start;">';
+            d += '      <div style="width:2.5rem; height:2.5rem; border-radius:9999px; background:var(--color-rose-bg); color:var(--color-rose); display:flex; align-items:center; justify-content:center;">' + svgs.trash + '</div>';
+            d += '      <button type="button" id="close-delete-modal" style="background:none; border:none; cursor:pointer; color:#94a3b8;">' + svgs.close + '</button>';
+            d += '    </div>';
+            d += '    <div style="margin-top:0.75rem;">';
+            d += '      <h2 style="font-size:1.125rem; font-weight:700; color:var(--color-text-main);">업무를 삭제하시겠습니까?</h2>';
+            d += '      <p style="font-size:0.8125rem; color:#475569; margin-top:0.5rem; line-height:1.5;">선택한 업무 <strong style="color:var(--color-text-main);">‘' + escapeHtml(deletingTask.title) + '’</strong> 항목만 삭제되며, 삭제 후에는 복구할 수 없습니다.</p>';
+            d += '    </div>';
+            d += '    <div class="modal-footer">';
+            d += '      <button type="button" id="cancel-delete-btn" class="btn-action" style="padding:0 1rem; height:2.5rem;">취소</button>';
+            d += '      <button type="button" id="confirm-delete-btn" class="btn-action btn-delete" style="padding:0 1.25rem; height:2.5rem; background:var(--color-rose); color:#ffffff; font-weight:700;">선택 항목 삭제</button>';
+            d += '    </div>';
+            d += '  </div>';
+            d += '</div>';
+            container.innerHTML = d;
+            return;
+          }
+
+          container.innerHTML = '';
+        }
+
+        function renderToast() {
+          var container = document.getElementById('toast-container');
+          if (!container) return;
+          if (toastMessage) {
+            container.innerHTML = '<div class="toast" role="status"><span style="color:#34d399;">' + svgs.checkIcon + '</span><span>' + escapeHtml(toastMessage) + '</span></div>';
+          } else {
+            container.innerHTML = '';
+          }
+        }
+
+        // --- Event Listeners Attachment ---
+        function attachEventListeners() {
+          var dismissBtn = document.getElementById('dismiss-storage-error');
+          if (dismissBtn) {
+            dismissBtn.onclick = function () {
+              storageError = null;
+              renderApp();
+            };
+          }
+
+          var titleInput = document.getElementById('task-title-input');
+          if (titleInput) {
+            titleInput.oninput = function (e) {
+              newTitle = e.target.value;
+              if (formError) formError = null;
+            };
+          }
+
+          var pBtns = document.querySelectorAll('.priority-btn[data-priority]');
+          pBtns.forEach(function (btn) {
+            btn.onclick = function () {
+              newPriority = btn.getAttribute('data-priority');
+              renderApp();
+            };
+          });
+
+          var dueDateInput = document.getElementById('task-due-date-input');
+          if (dueDateInput) {
+            dueDateInput.onchange = function (e) {
+              newDueDate = e.target.value;
+              renderApp();
+            };
+          }
+
+          var clearDateBtn = document.getElementById('clear-due-date-btn');
+          if (clearDateBtn) {
+            clearDateBtn.onclick = function () {
+              newDueDate = '';
+              renderApp();
+            };
+          }
+
+          var todayBtn = document.getElementById('btn-date-today');
+          if (todayBtn) {
+            todayBtn.onclick = function () {
+              newDueDate = getTodayLocalDateString();
+              renderApp();
+            };
+          }
+
+          var tomorrowBtn = document.getElementById('btn-date-tomorrow');
+          if (tomorrowBtn) {
+            tomorrowBtn.onclick = function () {
+              newDueDate = getTomorrowLocalDateString();
+              renderApp();
+            };
+          }
+
+          var addForm = document.getElementById('task-add-form');
+          if (addForm) {
+            addForm.onsubmit = function (e) {
+              e.preventDefault();
+              addTask();
+            };
+          }
+
+          var statusTabs = document.querySelectorAll('.filter-tab[data-filter-status]');
+          statusTabs.forEach(function (tab) {
+            tab.onclick = function () {
+              filters.status = tab.getAttribute('data-filter-status');
+              renderApp();
+            };
+          });
+
+          var searchInput = document.getElementById('search-input');
+          if (searchInput) {
+            searchInput.oninput = function (e) {
+              filters.search = e.target.value;
+              renderApp();
+              var el = document.getElementById('search-input');
+              if (el) {
+                el.focus();
+                el.setSelectionRange(el.value.length, el.value.length);
+              }
+            };
+          }
+
+          var pSelect = document.getElementById('priority-filter-select');
+          if (pSelect) {
+            pSelect.onchange = function (e) {
+              filters.priority = e.target.value;
+              renderApp();
+            };
+          }
+
+          var sSelect = document.getElementById('sort-select');
+          if (sSelect) {
+            sSelect.onchange = function (e) {
+              filters.sortBy = e.target.value;
+              renderApp();
+            };
+          }
+
+          var resetBtn = document.getElementById('btn-reset-filters');
+          if (resetBtn) {
+            resetBtn.onclick = function () {
+              filters = {
+                status: 'all',
+                priority: 'all',
+                search: '',
+                sortBy: 'createdAt_desc',
+              };
+              renderApp();
+            };
+          }
+
+          var checkBtns = document.querySelectorAll('[data-action="toggle-complete"]');
+          checkBtns.forEach(function (btn) {
+            btn.onclick = function () {
+              var id = btn.getAttribute('data-id');
+              if (id) toggleComplete(id);
+            };
+          });
+
+          var editBtns = document.querySelectorAll('[data-action="open-edit"]');
+          editBtns.forEach(function (btn) {
+            btn.onclick = function () {
+              var id = btn.getAttribute('data-id');
+              var target = tasks.find(function (t) { return t.id === id; });
+              if (target) {
+                editingTask = Object.assign({}, target);
+                editError = null;
+                renderModals();
+                attachModalListeners();
+              }
+            };
+          });
+
+          var delBtns = document.querySelectorAll('[data-action="open-delete"]');
+          delBtns.forEach(function (btn) {
+            btn.onclick = function () {
+              var id = btn.getAttribute('data-id');
+              var target = tasks.find(function (t) { return t.id === id; });
+              if (target) {
+                deletingTask = target;
+                renderModals();
+                attachModalListeners();
+              }
+            };
+          });
+        }
+
+        function attachModalListeners() {
+          var closeEdit = document.getElementById('close-edit-modal');
+          var cancelEdit = document.getElementById('cancel-edit-btn');
+          var onCancelEdit = function () {
+            editingTask = null;
+            editError = null;
+            renderModals();
+          };
+          if (closeEdit) closeEdit.onclick = onCancelEdit;
+          if (cancelEdit) cancelEdit.onclick = onCancelEdit;
+
+          var editForm = document.getElementById('edit-task-form');
+          if (editForm) {
+            editForm.onsubmit = function (e) {
+              e.preventDefault();
+              saveEdit();
+            };
+          }
+
+          var editPBtns = document.querySelectorAll('.priority-btn[data-edit-priority]');
+          editPBtns.forEach(function (btn) {
+            btn.onclick = function () {
+              if (editingTask) {
+                editingTask.priority = btn.getAttribute('data-edit-priority');
+                renderModals();
+                attachModalListeners();
+              }
+            };
+          });
+
+          var editDateInput = document.getElementById('edit-due-date-input');
+          if (editDateInput) {
+            editDateInput.onchange = function (e) {
+              if (editingTask) {
+                editingTask.dueDate = e.target.value || null;
+                renderModals();
+                attachModalListeners();
+              }
+            };
+          }
+
+          var editClearDate = document.getElementById('edit-clear-due-date');
+          if (editClearDate) {
+            editClearDate.onclick = function () {
+              if (editingTask) {
+                editingTask.dueDate = null;
+                renderModals();
+                attachModalListeners();
+              }
+            };
+          }
+
+          var editToday = document.getElementById('edit-date-today');
+          if (editToday) {
+            editToday.onclick = function () {
+              if (editingTask) {
+                editingTask.dueDate = getTodayLocalDateString();
+                renderModals();
+                attachModalListeners();
+              }
+            };
+          }
+
+          var editTomorrow = document.getElementById('edit-date-tomorrow');
+          if (editTomorrow) {
+            editTomorrow.onclick = function () {
+              if (editingTask) {
+                editingTask.dueDate = getTomorrowLocalDateString();
+                renderModals();
+                attachModalListeners();
+              }
+            };
+          }
+
+          var closeDel = document.getElementById('close-delete-modal');
+          var cancelDel = document.getElementById('cancel-delete-btn');
+          var onCancelDel = function () {
+            deletingTask = null;
+            renderModals();
+          };
+          if (closeDel) closeDel.onclick = onCancelDel;
+          if (cancelDel) cancelDel.onclick = onCancelDel;
+
+          var confirmDel = document.getElementById('confirm-delete-btn');
+          if (confirmDel) {
+            confirmDel.onclick = function () {
+              if (deletingTask) {
+                confirmDelete(deletingTask.id);
+              }
+            };
+          }
+        }
+
+        // Init on DOM ready
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', renderApp);
+        } else {
+          renderApp();
+        }
+      })();
+    </script>
+  </body>
+</html>
